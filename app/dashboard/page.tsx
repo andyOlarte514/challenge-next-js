@@ -1,28 +1,86 @@
-'use client';
+"use client";
 
-import React from 'react';
-
-const projects = [
-    { id: 1, name: 'Proyecto 1' },
-    { id: 2, name: 'Proyecto 2' },
-    { id: 3, name: 'Proyecto 3' },
-  ];
+import React, { useState, useEffect, useCallback } from "react";
+import Cookies from "js-cookie";
+import jwt, { JwtPayload } from "jsonwebtoken";
+import api, { setAuthorizationToken } from "@/config/api";
+import { Project } from "@/interfaces/project.interface";
+import FormCreateProject from "@/components/FormCreateProject";
+import ProjectCard from "@/components/ProjectCard";
 
 const Dashboard: React.FC = () => {
-    return (
-        <div className="container mx-auto py-8">
-          <h1 className="text-2xl font-bold mb-4">Lista de Proyectos</h1>
-          <ul className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {projects.map((project) => (
-              <li key={project.id} className="bg-white rounded-md shadow-md p-4">
-                <h2 className="text-lg font-bold">{project.name}</h2>
-                <p className="mt-2">ID: {project.id}</p>
-              </li>
-            ))}
-          </ul>
-        </div>
-      );
-};
+  const token = Cookies.get("jwt");
+  const decodedToken = jwt.decode(token!) as JwtPayload;
+  const [projects, setProjects] = useState<Project[]>([]);
 
+  const fetchData = useCallback(async () => {
+    try {
+      const response = await api.get(
+        `/projects/by-owner/${decodedToken.username}`
+      );
+      setProjects(response.data);
+    } catch (error) {
+      console.error("Error retrieving data from the endpoint:", error);
+    }
+  }, [decodedToken]);
+
+  const handleCreateProject = useCallback(
+    async (values: any, actions: any) => {
+      try {
+        const response = await api.post("/projects", {
+          ...values,
+          owner: decodedToken.username,
+        });
+        if (response.statusText === "Created") {
+          actions.resetForm();
+        }
+      } catch (error) {
+        console.error("Error while trying to create the project:", error);
+      }
+    },
+    [decodedToken]
+  );
+
+  const handleCreateNote = useCallback(
+    async (project: Project, values: any, actions: any) => {
+      try {
+        const response = await api.post("/notes", {
+          ...values,
+          project: project.id,
+        });
+        if (response.statusText === "Created") {
+          actions.resetForm();
+        }
+      } catch (error) {
+        console.error("Error while trying to create the note:", error);
+      }
+    },
+    []
+  );
+
+  useEffect(() => {
+    setAuthorizationToken(token!);
+    fetchData();
+  }, [token, fetchData]);
+
+  return (
+    <div className="flex flex-col px-10 py-8">
+      <div className="flex justify-between items-center mb-4">
+        <h1 className="text-2xl font-bold">Project List</h1>
+      </div>
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-10">
+        {!!projects.length &&
+          projects.map((project) => (
+            <ProjectCard
+              key={project.id}
+              project={project}
+              onAddNote={handleCreateNote}
+            />
+          ))}
+      </div>
+      <FormCreateProject onSubmit={handleCreateProject} />
+    </div>
+  );
+};
 
 export default Dashboard;
