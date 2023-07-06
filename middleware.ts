@@ -41,7 +41,7 @@ const authenticate = async (request: any) => {
   } else if (!!token) {
     try {
       const response = await fetch(
-        "http://localhost:3000/auth/validate-token",
+        `${process.env.API_BASE_URL}/auth/validate-token`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },

@@ -1,10 +1,14 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import { Formik, Field, ErrorMessage } from "formik";
 import Link from "next/link";
+import api from "@/config/api";
 
 const RegistroForm = () => {
+  const [isUserCreated, setIsUserCreated] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
+
   const initialValues = {
     name: "",
     email: "",
@@ -38,8 +42,24 @@ const RegistroForm = () => {
     return errors;
   };
 
-  const handleSubmit = (values: any) => {
-    console.log("Registro exitoso", values);
+  const handleSubmit = async (values: any, actions: any) => {
+    try {
+      const response = await api.post("/users", {
+        name: values.name,
+        email: values.email,
+        password: values.password,
+      });
+      if (response.statusText === "Created") {
+        setIsUserCreated(true);
+        actions.resetForm();
+      }
+    } catch (error: any) {
+      if (error?.response?.data?.message) {
+        setErrorMessage(error.response.data.message);
+      } else {
+        setErrorMessage("An error occurred while registering.");
+      }
+    }
   };
 
   return (
@@ -54,6 +74,16 @@ const RegistroForm = () => {
           className="flex flex-col items-center justify-center h-screen"
         >
           <div className="max-w-sm w-full p-4 border border-gray-300 rounded-md shadow-md">
+            {isUserCreated && !errorMessage && (
+              <div className="text-green-500 text-center mb-4">
+                User created successfully.
+              </div>
+            )}
+            {errorMessage && (
+              <div className="text-red-500 text-center mb-4">
+                {errorMessage}
+              </div>
+            )}
             <div className="mb-4">
               <label htmlFor="name" className="block mb-2">
                 Name:

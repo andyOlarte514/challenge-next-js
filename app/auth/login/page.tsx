@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import { Formik, Field, ErrorMessage } from "formik";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
@@ -9,6 +9,7 @@ import Cookies from "js-cookie";
 import api from "@/config/api";
 
 const LoginForm = () => {
+  const [errorMessage, setErrorMessage] = useState("");
   const router = useRouter();
   const initialValues = {
     email: "",
@@ -41,8 +42,12 @@ const LoginForm = () => {
         Cookies.set("jwt", response.data.token);
         router.push("/dashboard");
       }
-    } catch (error) {
-      console.error(error);
+    } catch (error: any) {
+      if (error?.response?.data?.message) {
+        setErrorMessage(error.response.data.message);
+      } else {
+        setErrorMessage("An error occurred.");
+      }
     }
   };
 
@@ -58,6 +63,11 @@ const LoginForm = () => {
           className="flex flex-col items-center justify-center h-screen"
         >
           <div className="max-w-sm w-full p-4 border border-gray-300 rounded-md shadow-md">
+            {errorMessage && (
+              <div className="text-red-500 text-center mb-4">
+                {errorMessage}
+              </div>
+            )}
             <div className="mb-4">
               <label htmlFor="email" className="block mb-2">
                 Email address:
