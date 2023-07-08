@@ -30,7 +30,7 @@ const FormCreateNote: React.FC<FormCreateNoteProps> = ({ onSubmit }) => {
         validate={handleValidate}
       >
         {({ handleSubmit, isValid }) => (
-          <form onSubmit={handleSubmit}>
+          <form onSubmit={handleSubmit} data-testid="note-form">
             <div className="mb-4">
               <label htmlFor="title" className="block font-semibold mb-2">
                 Note Title

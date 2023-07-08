@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Cookies from "js-cookie";
 
-import api from "@/config/api";
+import api from "../../../config/api";
 
 const LoginForm = () => {
   const [errorMessage, setErrorMessage] = useState("");
